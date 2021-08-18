@@ -1,143 +1,111 @@
-const addButton = document.getElementById("addButton")
-const parentDiv = document.getElementById("TODO-container")
+const addButton = document.getElementById("addButton");
+const parentDiv = document.getElementById("TODO-container");
 
+class TODOapp {
+  constructor() {
+    this.input = document.getElementById("input-field");
+  }
 
+  edit(e) {
+    /*     console.log(e);
+     */ this.item.editItem(e);
+  }
 
-class TODOapp { 
-
-
-    editItem(e){
-        console.log(e.childNodes[2])
-        e.childNodes[4].style.display = "block"
-
+  visiblity(e) {
+    e.style.display = "none";
+  }
+  checkValid() {
+    if (!this.input.checkValidity()) {
+      alert("Wrong input");
+      throw new Error("error");
     }
+  }
 
-    addItem(){
-        const validty = document.getElementById("input-field").checkValidity()
-        if(validty){
-        const inputValue = document.getElementById("input-field").value
-        this.item = new TODOItem(inputValue)
-        console.log(this.item.modalWin.modal.childNodes[0])
-        this.item.del.addEventListener("click", (e)=>{
-            this.deleteItem(e.target.parentNode)
-            
-        })
-        this.item.edit.addEventListener("click",(e)=> {
-            this.editItem(e.target.parentNode)}
-        )
-        const savebtn = this.item.modalWin.modal.childNodes[5]
-        savebtn.addEventListener("click",()=>{
-            console.log(this.item.title)
-            this.item.modalWin.modal.style.display = "none"
-            this.update()
-            console.log(this.item.title)
-        })
-        parentDiv.appendChild(this.item.element)
-        }
-        else{
-            alert("Wrong Input")
-        }
-    }
-    deleteItem(ele){
-        ele.remove()
-    }
+  addEventListeners() {
+    this.item.element.querySelector(".del").addEventListener("click", (e) => {
+      this.deleteItem(e.target.parentElement);
+    });
+    this.item.element.querySelector(".edit").addEventListener("click", (e) => {
+      e.target.parentNode.querySelector(".modal").style.display = "block";
+    });
+    this.item.element.querySelector(".close").addEventListener("click", (e) => {
+      e.target.parentNode.style.display = "none";
+    });
+    this.item.element.querySelector(".save").addEventListener("click", (e) => {
+      e.target.parentNode.style.display = "none";
+      this.edit(e.target.parentNode);
+    });
+  }
 
-    update(){
-        this.item.titleEle.innerText = this.item.modalWin.modal.childNodes[0].value
-        
-        
-    }
+  addItem() {
+    this.checkValid();
+    this.item = new TODOItem(this.input.value);
+    this.addEventListeners();
+    parentDiv.appendChild(this.item.element);
+  }
+
+  deleteItem(ele) {
+    ele.remove();
+  }
 }
 
 class TODOItem {
-    constructor(title){
-        this.title = title
-        this.timeStamp = Date.now()
-        this.start = new Date(this.timeStamp).toLocaleString()   
-        this.end = new Date(this.timeStamp+86400000).toLocaleString()
-        this.crateTemplate()
-    }
-    crateTemplate(){
-        
-        this.element = document.createElement("div")
-        this.element.classList.add("element")
-        this.modalWin = new ModalWindow()
-        
-        this.del = document.createElement("p")
-        this.del.innerText = "DELETE"
-        this.edit = document.createElement("p")
-        this.edit.innerText = "Edit"
-        this.titleEle = document.createElement("p")
-        this.titleEle.innerText = this.title
-        this.startEle = document.createElement("p")
-        this.startEle.innerText = this.start
-        this.endEle = document.createElement("p")
-        this.endEle.innerText = this.end
+  constructor(title) {
+    this.title = title;
+    this.timeStamp = Date.now();
+    this.start = new Date(this.timeStamp).toLocaleString();
+    this.end = new Date(this.timeStamp + 86400000).toLocaleString();
+    this.stringTempl();
+  }
 
-        this.element.appendChild(this.titleEle)
-        this.element.appendChild(this.startEle)
-        this.element.appendChild(this.endEle)
-        this.element.appendChild(this.del)
-        this.element.appendChild(this.modalWin.modal)
-        this.element.appendChild(this.edit)
+  stringTempl() {
+    this.element = document.createElement("div");
+    this.element.classList.add("element");
+    this.modalWin = new ModalWindow();
+    this.element.innerHTML = `
+    <p class="title">${this.title} </p>
+    <p class="start">${this.start} </p>
+    <p class="end"> ${this.end}  </p>
+    <p class="del"> DELETE</p> 
+    <p class="edit">EDIT</p> 
+    ${this.modalWin.modal.outerHTML} 
+`;
 
-        
-    }
+  }
+  editItem(e) {
+    e.parentNode.querySelector(".title").textContent =
+      e.querySelector(".titleInput").value;
+    e.parentNode.querySelector(".start").textContent =
+      e.querySelector(".startTime").value +
+      "  " +
+      e.querySelector(".startDate").value;
+    e.parentNode.querySelector(".end").textContent =
+      e.querySelector(".endTime").value +
+      "  " +
+      e.querySelector(".endDate").value;
+  }
 }
 
 class ModalWindow {
-    constructor(){
-        
-        this.crateModal()
-    }
-    crateModal(){
-        
-        this.modal = document.createElement("div")
-        this.modal.classList.add("modal")
-        this.saveButton = document.createElement("span")
-        this.saveButton.textContent = "Save"
-        this.closeButton = document.createElement("p")
-        this.closeButton.textContent = "X"
-        this.closeButton.addEventListener("click",()=>{
-            this.modal.style.display = "none"
-        })
-        this.startDate = document.createElement("input")
-        this.startDate.type = "date"
-        this.title = document.createElement("input")
-        this.title.type = "text"
-        this.startTime = document.createElement("input")
-        this.startTime.type = "time"
-        this.startTime.step = "1"
-        this.endDate = document.createElement("input")
-        this.endDate.type = "date"
-        this.endTime = document.createElement("input")
-        this.endTime.type = "time"
-        this.endTime.step = "1"
-
-        this.modal.appendChild(this.title)
-        this.modal.appendChild(this.startDate)
-        this.modal.appendChild(this.startTime)
-        this.modal.appendChild(this.endDate)
-        this.modal.appendChild(this.endTime)
-        this.modal.appendChild(this.saveButton)
-        this.modal.appendChild(this.closeButton)
-
-    }
-    update(){
-        this.modal.style.display = "none"
-        title =  123
-        const newValue1 = this.startDate.value
-        const newValue2 = this.endDate.value
-        const newValue3 = this.startTime.value
-    }
-
+  constructor() {
+    this.crateModal();
+  }
+  crateModal() {
+    this.modal = document.createElement("div");
+    this.modal.classList.add("modal");
+    this.modal.innerHTML = `
+        <input class="startDate" type="date"> <br> 
+        <input class="titleInput" type="text"><br>
+        <input class="startTime" type="time" step="1"><br>
+        <input class="endDate" type="date"> <br> 
+        <input class="endTime" type="time" step="1"><br>
+        <p class="save">Save</p>
+        <p class="close">X</p> `;
+  }
 }
 
+const todoApp = new TODOapp();
 
-const todoApp = new TODOapp()
-
-
- addButton.addEventListener("click", ()=>{
-     todoApp.addItem()
- })
-
+addButton.addEventListener("click", () => {
+  todoApp.addItem();
+});
