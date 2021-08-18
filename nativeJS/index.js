@@ -7,8 +7,7 @@ class TODOapp {
   }
 
   edit(e) {
-    /*     console.log(e);
-     */ this.item.editItem(e);
+    this.item.editItem(e);
   }
 
   visiblity(e) {
@@ -70,7 +69,6 @@ class TODOItem {
     <p class="edit">EDIT</p> 
     ${this.modalWin.modal.outerHTML} 
 `;
-
   }
   editItem(e) {
     e.parentNode.querySelector(".title").textContent =
