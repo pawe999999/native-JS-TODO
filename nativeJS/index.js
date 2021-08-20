@@ -5,7 +5,9 @@ class TodoApp {
     constructor() {
         this.todoItems = [];
         this.input = document.getElementById('input-field');
-
+        addButton.addEventListener('click', () => {
+            this.addTodoItem();
+        });
         //Custom EventListeners
         document.addEventListener('deleteTodoItem', (event) => {
             const id = event.detail.index;
@@ -238,6 +240,3 @@ class App {
 }
 
 const app = new App();
-addButton.addEventListener('click', () => {
-    app.todoApp.addTodoItem();
-});
