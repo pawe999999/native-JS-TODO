@@ -1,144 +1,89 @@
 const addButton = document.getElementById('addButton');
 const parentDiv = document.getElementById('TODO-container');
 
-// class TODOapp {
-//   constructor() {
-//     this.input = document.getElementById('input-field');
-//   }
-//
-//   edit(e) {
-//     this.item.editItem(e);
-//   }
-//
-//   visiblity(e) {
-//     e.style.display = 'none';
-//   }
-//   checkValid() {
-//     if (!this.input.checkValidity()) {
-//       alert('Wrong input');
-//       throw new Error('error');
-//     }
-//   }
-//
-//   addEventListeners() {
-//     this.item.element.querySelector('.del').addEventListener('click', (e) => {
-//       this.deleteItem(e.target.parentElement);
-//     });
-//     this.item.element.querySelector('.edit').addEventListener('click', (e) => {
-//       e.target.parentNode.querySelector('.modal').style.display = 'block';
-//     });
-//     this.item.element.querySelector('.close').addEventListener('click', (e) => {
-//       e.target.parentNode.style.display = 'none';
-//     });
-//     this.item.element.querySelector('.save').addEventListener('click', (e) => {
-//       e.target.parentNode.style.display = 'none';
-//       this.edit(e.target.parentNode);
-//     });
-//   }
-//
-//   addItem() {
-//     this.checkValid();
-//     this.item = new TODOItem(this.input.value);
-//     this.addEventListeners();
-//     parentDiv.appendChild(this.item.element);
-//   }
-//
-//   deleteItem(ele) {
-//     ele.remove();
-//   }
-// }
-
 class TodoApp {
-    //data
-    //render or update
-    //addListeners
-    //CRUD
     constructor() {
         this.todoItems = [];
         this.input = document.getElementById('input-field');
-        //etc.
-        this.modal = new ModalWindow();
+
+        //Custom EventListeners
+        document.addEventListener('deleteTodoItem', (event) => {
+            const id = event.detail.index;
+            this.delete(id);
+        });
+
+        document.addEventListener('startEditTodoItem', (event) => {
+            const id = event.detail.index;
+            const existItemIndex = this.todoItems.find((todoItem) => {
+                return todoItem.id === id;
+            });
+            existItemIndex.modal.style.display = 'block';
+        });
+
+        document.addEventListener('saveTodoItem', (item) => {
+            const id = item.detail.item.id;
+            const modal = document.getElementsByClassName(`modal${id}`);
+            modal[0].style.display = 'none';
+            const existItemIndex = this.todoItems.findIndex((todoItem) => {
+                return todoItem.id === id;
+            });
+            this.todoItems[existItemIndex].edit(item, existItemIndex);
+            this.render();
+        });
+        document.addEventListener('closeModalWindow', (event) => {
+            const id = event.detail.index;
+            const existItemIndex = this.todoItems.find((todoItem) => {
+                return todoItem.id === id;
+            });
+            existItemIndex.modal.style.display = 'none';
+        });
     }
-    initButtons() {
-        this.deleteButton = document.getElementsByClassName('del');
-        this.editButton = document.getElementsByClassName('edit');
-        this.closeButton = document.getElementsByClassName('close');
-        this.saveButton = document.getElementsByClassName('save');
+    //Check the validity of the main input
+    validtyFromMainInput(input) {
+        const validity = input.checkValidity();
+        if (!validity) {
+            alert('Wrong Input');
+            throw new Error('Wrong input'); // Stop propagation of the code
+        }
+    }
+    //check validity when user edit todoItem
+    validFromModalWindow(item) {
+        const letters = /^[A-Za-z]+$/;
+        if (!item.title.match(letters)) {
+            return true;
+        }
+        return false;
     }
 
-    addTodoItem(title) {
+    addTodoItem() {
+        this.validtyFromMainInput(this.input);
         const todoItem = new TodoItem(this.input.value);
-        this.todoItems.push(todoItem);
+        this.modal = new ModalWindow();
+        const temp = Object.assign(todoItem, this.modal);
+        this.todoItems.push(temp);
         this.render();
-        this.initButtons();
-        this.initAllListeners();
-        console.log(this.deleteButton);
     }
 
     render() {
         parentDiv.innerHTML = '';
         const list = document.createElement('div');
         this.todoItems.forEach((item) => {
+            if (this.validFromModalWindow(item)) {
+                item.title = 'Wronginput'; //Setting title so alert box won't be annoying when there are more than one wrong input
+                alert('Wrong Input');
+            }
             list.appendChild(item.getTemplate());
-            list.appendChild(this.modal.modal);
+            list.appendChild(item.modal);
         });
         parentDiv.appendChild(list);
     }
 
-    edit(index) {
-        this.todoItems[index].editItem();
+    delete(id) {
+        const existItemIndex = this.todoItems.findIndex((item) => {
+            return item.id === id;
+        });
+        this.todoItems.splice(existItemIndex, 1);
         this.render();
-        this.initButtons();
-        this.initAllListeners();
-    }
-
-    listenToTheModalOpen() {
-        this.modal.hideModal();
-    }
-    listenToTheSave() {
-        const saveNodes = Array.prototype.slice.call(this.saveButton);
-        for (let button of this.saveButton) {
-            button.addEventListener('click', () => {
-                this.edit(saveNodes.indexOf(button));
-            });
-        }
-    }
-    listenToTheDelete() {
-        const deleteNodes = Array.prototype.slice.call(this.deleteButton);
-        for (let button of this.deleteButton) {
-            button.addEventListener('click', () => {
-                console.log('delete');
-                this.delete(deleteNodes.indexOf(button));
-            });
-        }
-    }
-    listenToTheEdit() {
-        const editNodes = Array.prototype.slice.call(this.editButton);
-        for (let button of this.editButton) {
-            button.addEventListener('click', () => {
-                this.modal.showModal();
-            });
-        }
-    }
-    listenToTheClose() {
-        for (let button of this.closeButton) {
-            button.addEventListener('click', () => {
-                this.modal.hideModal();
-            });
-        }
-    }
-    delete(index) {
-        this.todoItems.splice(index, 1);
-        this.render();
-        this.initButtons();
-        this.initAllListeners();
-    }
-
-    initAllListeners() {
-        this.listenToTheEdit();
-        this.listenToTheDelete();
-        this.listenToTheSave();
-        this.listenToTheClose();
     }
 }
 
@@ -148,42 +93,98 @@ class TodoItem {
         this.timeStamp = Date.now();
         this.start = new Date(this.timeStamp).toLocaleString();
         this.end = new Date(this.timeStamp + 86400000).toLocaleString();
+        this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`; //Generate random id for todoItem
     }
 
     getTemplate() {
         const element = document.createElement('div');
         element.classList.add('element');
-        element.innerHTML = `<p class='title'>${this.title} </p>
-        <p class='start'>${this.start} </p>
-        <p class='end'> ${this.end}  </p>
-        <p class='del'> DELETE</p> 
-        <p class='edit'>EDIT</p> 
+        element.innerHTML = `<p class='title${this.id}'>${this.title} </p>
+        <p class='start' id="start${this.id}">${this.start} </p>
+        <p class='end'> ${this.end}</p>
+        <p class='delete${this.id}' id="delete${this.id}"> DELETE</p> 
+        <p class='edit${this.id} id="edit${this.id}"'>EDIT</p> 
         `;
+
+        this.delButton = element.getElementsByClassName(`delete${this.id}`); //Can't use "getElementById" but this the same thing implemented in a diffrent way
+        this.delButton[0].addEventListener('click', () => this.deleteItem());
+
+        this.editButton = element.getElementsByClassName(`edit${this.id}`);
+        this.editButton[0].addEventListener('click', () => this.editItem());
+
         return element;
     }
+    edit(data) {
+        const {
+            data: {
+                detail: { item }, //object Destructuring
+            },
+        } = { data };
+        this.title = item.titleInputValue;
+        this.start = `${item.startDateValue}  ${item.startTimeValue}`;
+        this.end = `${item.endDateValue}  ${item.endTimeValue}`;
+    }
 
-    editItem(title, date) {
-        console.error('Not Implemented');
+    editItem() {
+        const event = new CustomEvent('startEditTodoItem', {
+            detail: {
+                index: this.id,
+            },
+        });
+
+        document.dispatchEvent(event);
+    }
+
+    deleteItem() {
+        const event = new CustomEvent('deleteTodoItem', {
+            detail: {
+                index: this.id,
+            },
+        });
+
+        document.dispatchEvent(event);
     }
 }
 
 class ModalWindow {
     constructor() {
+        this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`;
         this.crateModal();
         this.hideModal();
     }
 
     crateModal() {
         this.modal = document.createElement('div');
-        this.modal.classList.add('modal');
+        this.modal.classList.add(`modal${this.id}`, 'modal');
         this.modal.innerHTML = `
-        <input class='startDate' type='date'> <br> 
-        <input class='titleInput' type='text'><br>
-        <input class='startTime' type='time' step='1'><br>
-        <input class='endDate' type='date'> <br> 
-        <input class='endTime' type='time' step='1'><br>
-        <p class='save'>Save</p>
-        <p class='close'>X</p> `;
+        <input class='startDate${this.id}' type='date'> <br> 
+        <input class='titleInput${this.id}' type='text'><br>
+        <input class='startTime${this.id}' type='time' step='1'><br>
+        <input class='endDate${this.id}' type='date'> <br> 
+        <input class='endTime${this.id}' type='time' step='1'><br>
+        <p class='save-button${this.id}' id="save-button">Save</p>
+        <p class='edit-button${this.id}'>X</p> `;
+
+        this.saveButton = this.modal.getElementsByClassName(
+            `save-button${this.id}`
+        );
+        this.saveButton[0].addEventListener('click', () => this.save());
+        this.editButton = this.modal.getElementsByClassName(
+            `edit-button${this.id}`
+        );
+        this.editButton[0].addEventListener('click', () => this.close());
+
+        this.startDate = this.modal.getElementsByClassName(
+            `startDate${this.id}`
+        );
+        this.titleInput = this.modal.getElementsByClassName(
+            `titleInput${this.id}`
+        );
+        this.startTime = this.modal.getElementsByClassName(
+            `startTime${this.id}`
+        );
+        this.endTime = this.modal.getElementsByClassName(`endTime${this.id}`);
+        this.endDate = this.modal.getElementsByClassName(`endDate${this.id}`);
     }
 
     showModal() {
@@ -192,6 +193,41 @@ class ModalWindow {
 
     hideModal() {
         this.modal.style.display = 'none';
+    }
+
+    getDataFromForm() {
+        const data = {
+            startDateValue: this.startDate[0].value, //[0] comes from the fact that "getElementsByClass" returns an array
+            startTimeValue: this.startTime[0].value,
+            endDateValue: this.endDate[0].value,
+            endTimeValue: this.endTime[0].value,
+            titleInputValue: this.titleInput[0].value,
+        };
+        return data;
+    }
+    save() {
+        //get data from form
+        const data = this.getDataFromForm();
+        const event = new CustomEvent('saveTodoItem', {
+            detail: {
+                item: {
+                    ...data,
+                    id: this.id,
+                    /* this.currentItemId ??
+                        `${crypto.getRandomValues(new Uint8Array(8)).join('')}`, */
+                },
+            },
+        });
+        this.currentItemId = null;
+        document.dispatchEvent(event);
+    }
+    close() {
+        const event = new CustomEvent('closeModalWindow', {
+            detail: {
+                index: this.id,
+            },
+        });
+        document.dispatchEvent(event);
     }
 }
 

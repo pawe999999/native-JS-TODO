@@ -1,25 +1,25 @@
 .element {
-  border: 1px solid black;
-  font-size: 20px;
+    border: 1px solid black;
+    font-size: 20px;
 }
 
 .editButton {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .modal {
-  position: absolute;
-  /*   top: 20%; */
-  /*   left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto; */
-  width: 500px;
-  height: 500px;
-  background-color: gray;
-  border: 1px solid black;
-  display: none;
+    position: absolute;
+    top: 20%;
+    left: 0;
+    right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    width: 500px;
+    height: 500px;
+    background-color: gray;
+    border: 1px solid black;
+    display: block;
 }
 #TODO-container {
-  background-color: brown;
+    background-color: brown;
 }
