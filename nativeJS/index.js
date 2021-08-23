@@ -1,48 +1,43 @@
-const addButton = document.getElementById('addButton');
-const parentDiv = document.getElementById('TODO-container');
-
 class TodoApp {
     constructor() {
+        this.modal = new ModalWindow();
         this.todoItems = [];
         this.input = document.getElementById('input-field');
-
+        this.parentDiv = document.getElementById('TODO-container');
+        this.currentItemId;
+        const addButton = document.getElementById('addButton');
         addButton.addEventListener('click', () => {
             this.addTodoItem();
         });
 
         //Custom EventListeners
         document.addEventListener('deleteTodoItem', (event) => {
-            const id = event.detail.index;
-            this.delete(id);
+            const eventId = event.detail.id;
+            const existItemIndex = this.todoItems.findIndex(({ id }) => {
+                return id === eventId;
+            });
+            this.delete(existItemIndex);
         });
 
         document.addEventListener('startEditTodoItem', (event) => {
-            const id = event.detail.index;
-            const existItemIndex = this.todoItems.find((todoItem) => {
-                return todoItem.id === id;
-            });
-            console.log(existItemIndex);
-            this.modal.showModal(existItemIndex);
+            const id = event.detail.id;
+            this.modal.showModal();
+            this.currentItemId = id;
         });
 
         document.addEventListener('saveTodoItem', (item) => {
-            const id = item.detail.item.id;
-            const modal = document.getElementsByClassName(`modal${id}`);
-            modal[0].style.display = 'none';
-            const existItemIndex = this.todoItems.findIndex((todoItem) => {
-                return todoItem.id === id;
+            const existItem = this.todoItems.find(({ id }) => {
+                return id === this.currentItemId;
             });
-            this.todoItems[existItemIndex].edit(item, existItemIndex);
+            existItem.edit(item);
+            this.modal.hideModal();
+            this.modal.clearModalInputs();
+            this.currentItemId = null;
             this.render();
         });
-        document.addEventListener('closeModalWindow', (event) => {
-            const id = event.detail.index;
-            const existItemIndex = this.todoItems.find((todoItem) => {
-                console.log(todoItem.id === id);
-                return todoItem.id === id;
-            });
-
-            this.modal.hideModal(existItemIndex);
+        document.addEventListener('closeModalWindow', () => {
+            this.modal.hideModal();
+            this.currentItemId = null;
         });
     }
     //Check the validity of the main input
@@ -57,14 +52,12 @@ class TodoApp {
     addTodoItem() {
         this.validtyFromMainInput(this.input);
         const todoItem = new TodoItem(this.input.value);
-        this.modal = new ModalWindow();
-        const itemWithModal = Object.assign(todoItem, this.modal); //Creating one object from todoItem and modal.
-        this.todoItems.push(itemWithModal); // I had a problem with rendering separate modal window for every item and this works fine.
+        this.todoItems.push(todoItem);
         this.render();
     }
 
     render() {
-        parentDiv.innerHTML = '';
+        this.parentDiv.innerHTML = '';
         const list = document.createElement('div');
         this.todoItems.forEach((item) => {
             if (item.validFromModalWindow()) {
@@ -73,16 +66,13 @@ class TodoApp {
                 alert('Wrong Input');
             }
             list.appendChild(item.getTemplate());
-            list.appendChild(item.modal);
         });
-        parentDiv.appendChild(list);
+        this.parentDiv.appendChild(list);
+        this.parentDiv.appendChild(this.modal.modal);
     }
 
-    delete(id) {
-        const existItemIndex = this.todoItems.findIndex((item) => {
-            return item.id === id;
-        });
-        this.todoItems.splice(existItemIndex, 1);
+    delete(index) {
+        this.todoItems.splice(index, 1);
         this.render();
     }
 }
@@ -136,7 +126,7 @@ class TodoItem {
     editItem() {
         const event = new CustomEvent('startEditTodoItem', {
             detail: {
-                index: this.id,
+                id: this.id,
             },
         });
 
@@ -146,7 +136,7 @@ class TodoItem {
     deleteItem() {
         const event = new CustomEvent('deleteTodoItem', {
             detail: {
-                index: this.id,
+                id: this.id,
             },
         });
 
@@ -158,19 +148,20 @@ class ModalWindow {
     constructor() {
         this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`;
         this.crateModal();
+        this.hideModal();
     }
 
     crateModal() {
         this.modal = document.createElement('div');
         this.modal.classList.add(`modal${this.id}`, 'modal');
-        this.modal.innerHTML = `
-        <input class='startDate${this.id}' type='date'> <br> 
-        <input class='titleInput${this.id}' type='text'><br>
-        <input class='startTime${this.id}' type='time' step='1'><br>
-        <input class='endDate${this.id}' type='date'> <br> 
-        <input class='endTime${this.id}' type='time' step='1'><br>
-        <p class='save-button${this.id}' id="save-button">Save</p>
-        <p class='edit-button${this.id}'>X</p> `;
+        this.modal.innerHTML = `<div class="innerModal">
+        <input class='titleInput${this.id} modalInput' type='text'>
+        <input class='startDate${this.id} modalInput' type='date'>      
+        <input class='startTime${this.id} modalInput' type='time' step='1'>
+        <input class='endDate${this.id} modalInput' type='date'>  
+        <input class='endTime${this.id} modalInput' type='time' step='1'>
+        <span class='save-button${this.id} modalButtons' id="save-button">Save</span>
+        <span class='edit-button${this.id} modalButtons'>Close</span> </div>`;
 
         this.saveButton = this.modal.getElementsByClassName(
             `save-button${this.id}`
@@ -198,12 +189,20 @@ class ModalWindow {
         )[0]; // [0] comes from the fact that "getElementsByClass" returns an array
     }
 
-    showModal(item) {
-        item.modal.style.display = 'block';
+    showModal() {
+        this.modal.style.display = 'block';
     }
 
-    hideModal(item) {
-        item.modal.style.display = 'none';
+    hideModal() {
+        this.modal.style.display = 'none';
+    }
+    //clear modal inputs values
+    clearModalInputs() {
+        this.startDate.value = null;
+        this.startTime.value = null;
+        this.endDate.value = null;
+        this.endTime.value = null;
+        this.titleInput.value = null;
     }
 
     getDataFromForm() {
@@ -224,8 +223,6 @@ class ModalWindow {
                 item: {
                     ...data,
                     id: this.id,
-                    /* this.currentItemId ??
-                        `${crypto.getRandomValues(new Uint8Array(8)).join('')}`, */
                 },
             },
         });
@@ -235,7 +232,7 @@ class ModalWindow {
     close() {
         const event = new CustomEvent('closeModalWindow', {
             detail: {
-                index: this.id,
+                id: this.id,
             },
         });
         document.dispatchEvent(event);
