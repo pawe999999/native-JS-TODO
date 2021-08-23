@@ -1,143 +1,248 @@
-const addButton = document.getElementById("addButton")
-const parentDiv = document.getElementById("TODO-container")
+class TodoApp {
+    constructor() {
+        this.modal = new ModalWindow();
+        this.todoItems = [];
+        this.input = document.getElementById('input-field');
+        this.parentDiv = document.getElementById('TODO-container');
+        this.currentItemId;
+        const addButton = document.getElementById('addButton');
+        addButton.addEventListener('click', () => {
+            this.addTodoItem();
+        });
 
+        //Custom EventListeners
+        document.addEventListener('deleteTodoItem', (event) => {
+            const eventId = event.detail.id;
+            const existItemIndex = this.todoItems.findIndex(({ id }) => {
+                return id === eventId;
+            });
+            this.delete(existItemIndex);
+        });
 
+        document.addEventListener('startEditTodoItem', (event) => {
+            const id = event.detail.id;
+            this.modal.showModal();
+            this.currentItemId = id;
+        });
 
-class TODOapp { 
-
-
-    editItem(e){
-        console.log(e.childNodes[2])
-        e.childNodes[4].style.display = "block"
-
+        document.addEventListener('saveTodoItem', (item) => {
+            const existItem = this.todoItems.find(({ id }) => {
+                return id === this.currentItemId;
+            });
+            existItem.edit(item);
+            this.modal.hideModal();
+            this.modal.clearModalInputs();
+            this.currentItemId = null;
+            this.render();
+        });
+        document.addEventListener('closeModalWindow', () => {
+            this.modal.hideModal();
+            this.currentItemId = null;
+        });
     }
-
-    addItem(){
-        const validty = document.getElementById("input-field").checkValidity()
-        if(validty){
-        const inputValue = document.getElementById("input-field").value
-        this.item = new TODOItem(inputValue)
-        console.log(this.item.modalWin.modal.childNodes[0])
-        this.item.del.addEventListener("click", (e)=>{
-            this.deleteItem(e.target.parentNode)
-            
-        })
-        this.item.edit.addEventListener("click",(e)=> {
-            this.editItem(e.target.parentNode)}
-        )
-        const savebtn = this.item.modalWin.modal.childNodes[5]
-        savebtn.addEventListener("click",()=>{
-            console.log(this.item.title)
-            this.item.modalWin.modal.style.display = "none"
-            this.update()
-            console.log(this.item.title)
-        })
-        parentDiv.appendChild(this.item.element)
+    //Check the validity of the main input
+    validtyFromMainInput(input) {
+        const validity = input.checkValidity();
+        if (!validity) {
+            alert('Wrong Input');
+            throw new Error('Wrong input'); // Stops propagation of the code
         }
-        else{
-            alert("Wrong Input")
-        }
-    }
-    deleteItem(ele){
-        ele.remove()
     }
 
-    update(){
-        this.item.titleEle.innerText = this.item.modalWin.modal.childNodes[0].value
-        
-        
+    addTodoItem() {
+        this.validtyFromMainInput(this.input);
+        const todoItem = new TodoItem(this.input.value);
+        this.todoItems.push(todoItem);
+        this.render();
+    }
+
+    render() {
+        this.parentDiv.innerHTML = '';
+        const list = document.createElement('div');
+        this.todoItems.forEach((item) => {
+            if (item.validFromModalWindow()) {
+                //checking if the input title is correct
+                item.title = 'Wronginput'; //Setting title so alert box won't be annoying when there are more than one wrong input
+                alert('Wrong Input');
+            }
+            list.appendChild(item.getTemplate());
+        });
+        this.parentDiv.appendChild(list);
+        this.parentDiv.appendChild(this.modal.modal);
+    }
+
+    delete(index) {
+        this.todoItems.splice(index, 1);
+        this.render();
     }
 }
 
-class TODOItem {
-    constructor(title){
-        this.title = title
-        this.timeStamp = Date.now()
-        this.start = new Date(this.timeStamp).toLocaleString()   
-        this.end = new Date(this.timeStamp+86400000).toLocaleString()
-        this.crateTemplate()
+class TodoItem {
+    constructor(title) {
+        this.title = title;
+        this.timeStamp = Date.now();
+        this.start = new Date(this.timeStamp).toLocaleString();
+        this.end = new Date(this.timeStamp + 86400000).toLocaleString();
+        this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`; //Generate random id for todoItem
     }
-    crateTemplate(){
-        
-        this.element = document.createElement("div")
-        this.element.classList.add("element")
-        this.modalWin = new ModalWindow()
-        
-        this.del = document.createElement("p")
-        this.del.innerText = "DELETE"
-        this.edit = document.createElement("p")
-        this.edit.innerText = "Edit"
-        this.titleEle = document.createElement("p")
-        this.titleEle.innerText = this.title
-        this.startEle = document.createElement("p")
-        this.startEle.innerText = this.start
-        this.endEle = document.createElement("p")
-        this.endEle.innerText = this.end
 
-        this.element.appendChild(this.titleEle)
-        this.element.appendChild(this.startEle)
-        this.element.appendChild(this.endEle)
-        this.element.appendChild(this.del)
-        this.element.appendChild(this.modalWin.modal)
-        this.element.appendChild(this.edit)
+    getTemplate() {
+        const element = document.createElement('div');
+        element.classList.add('element');
+        element.innerHTML = `<p class='title${this.id}'>${this.title} </p>
+        <p class='start' id="start${this.id}">${this.start} </p>
+        <p class='end'> ${this.end}</p>
+        <p class='delete${this.id}' id="delete${this.id}"> DELETE</p> 
+        <p class='edit${this.id} id="edit${this.id}"'>EDIT</p> 
+        `;
 
-        
+        this.delButton = element.getElementsByClassName(`delete${this.id}`); //Can't use "getElementById" but this the same thing implemented in a diffrent way
+        this.delButton[0].addEventListener('click', () => this.deleteItem());
+
+        this.editButton = element.getElementsByClassName(`edit${this.id}`);
+        this.editButton[0].addEventListener('click', () => this.editItem());
+
+        return element;
+    }
+    //checks validity when user edit todoItem
+    validFromModalWindow() {
+        const letters = /^[A-Za-z]+$/;
+        if (this.title.match(letters)) {
+            return false;
+        }
+        return true;
+    }
+    edit(data) {
+        const {
+            data: {
+                detail: { item }, //object Destructuring
+            },
+        } = { data };
+        this.title = item.titleInputValue;
+        this.start = `${item.startDateValue}  ${item.startTimeValue}`; //Data from modal window are transfer to todoItem
+        this.end = `${item.endDateValue}  ${item.endTimeValue}`;
+    }
+
+    editItem() {
+        const event = new CustomEvent('startEditTodoItem', {
+            detail: {
+                id: this.id,
+            },
+        });
+
+        document.dispatchEvent(event);
+    }
+
+    deleteItem() {
+        const event = new CustomEvent('deleteTodoItem', {
+            detail: {
+                id: this.id,
+            },
+        });
+
+        document.dispatchEvent(event);
     }
 }
 
 class ModalWindow {
-    constructor(){
-        
-        this.crateModal()
-    }
-    crateModal(){
-        
-        this.modal = document.createElement("div")
-        this.modal.classList.add("modal")
-        this.saveButton = document.createElement("span")
-        this.saveButton.textContent = "Save"
-        this.closeButton = document.createElement("p")
-        this.closeButton.textContent = "X"
-        this.closeButton.addEventListener("click",()=>{
-            this.modal.style.display = "none"
-        })
-        this.startDate = document.createElement("input")
-        this.startDate.type = "date"
-        this.title = document.createElement("input")
-        this.title.type = "text"
-        this.startTime = document.createElement("input")
-        this.startTime.type = "time"
-        this.startTime.step = "1"
-        this.endDate = document.createElement("input")
-        this.endDate.type = "date"
-        this.endTime = document.createElement("input")
-        this.endTime.type = "time"
-        this.endTime.step = "1"
-
-        this.modal.appendChild(this.title)
-        this.modal.appendChild(this.startDate)
-        this.modal.appendChild(this.startTime)
-        this.modal.appendChild(this.endDate)
-        this.modal.appendChild(this.endTime)
-        this.modal.appendChild(this.saveButton)
-        this.modal.appendChild(this.closeButton)
-
-    }
-    update(){
-        this.modal.style.display = "none"
-        title =  123
-        const newValue1 = this.startDate.value
-        const newValue2 = this.endDate.value
-        const newValue3 = this.startTime.value
+    constructor() {
+        this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`;
+        this.crateModal();
+        this.hideModal();
     }
 
+    crateModal() {
+        this.modal = document.createElement('div');
+        this.modal.classList.add(`modal${this.id}`, 'modal');
+        this.modal.innerHTML = `<div class="innerModal">
+        <input class='titleInput${this.id} modalInput' type='text'>
+        <input class='startDate${this.id} modalInput' type='date'>      
+        <input class='startTime${this.id} modalInput' type='time' step='1'>
+        <input class='endDate${this.id} modalInput' type='date'>  
+        <input class='endTime${this.id} modalInput' type='time' step='1'>
+        <span class='save-button${this.id} modalButtons' id="save-button">Save</span>
+        <span class='edit-button${this.id} modalButtons'>Close</span> </div>`;
+
+        this.saveButton = this.modal.getElementsByClassName(
+            `save-button${this.id}`
+        );
+        this.saveButton[0].addEventListener('click', () => this.save());
+        this.editButton = this.modal.getElementsByClassName(
+            `edit-button${this.id}`
+        );
+        this.editButton[0].addEventListener('click', () => this.close());
+
+        this.startDate = this.modal.getElementsByClassName(
+            `startDate${this.id}`
+        )[0];
+        this.titleInput = this.modal.getElementsByClassName(
+            `titleInput${this.id}`
+        )[0];
+        this.startTime = this.modal.getElementsByClassName(
+            `startTime${this.id}`
+        )[0];
+        this.endTime = this.modal.getElementsByClassName(
+            `endTime${this.id}`
+        )[0];
+        this.endDate = this.modal.getElementsByClassName(
+            `endDate${this.id}`
+        )[0]; // [0] comes from the fact that "getElementsByClass" returns an array
+    }
+
+    showModal() {
+        this.modal.style.display = 'block';
+    }
+
+    hideModal() {
+        this.modal.style.display = 'none';
+    }
+    //clear modal inputs values
+    clearModalInputs() {
+        this.startDate.value = null;
+        this.startTime.value = null;
+        this.endDate.value = null;
+        this.endTime.value = null;
+        this.titleInput.value = null;
+    }
+
+    getDataFromForm() {
+        const data = {
+            startDateValue: this.startDate.value,
+            startTimeValue: this.startTime.value,
+            endDateValue: this.endDate.value,
+            endTimeValue: this.endTime.value,
+            titleInputValue: this.titleInput.value,
+        };
+        return data;
+    }
+    save() {
+        //get data from form
+        const data = this.getDataFromForm();
+        const event = new CustomEvent('saveTodoItem', {
+            detail: {
+                item: {
+                    ...data,
+                    id: this.id,
+                },
+            },
+        });
+        this.currentItemId = null;
+        document.dispatchEvent(event);
+    }
+    close() {
+        const event = new CustomEvent('closeModalWindow', {
+            detail: {
+                id: this.id,
+            },
+        });
+        document.dispatchEvent(event);
+    }
 }
 
+class App {
+    constructor() {
+        this.todoApp = new TodoApp();
+    }
+}
 
-const todoApp = new TODOapp()
-
-
- addButton.addEventListener("click", ()=>{
-     todoApp.addItem()
- })
-
+const app = new App();

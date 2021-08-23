@@ -1,25 +1,56 @@
-.element{
+.element {
     border: 1px solid black;
     font-size: 20px;
 }
 
-.editButton{
+.editButton {
     cursor: pointer;
 }
 
-.modal{
-    position: absolute;
-    top: 20%;
-    left: 0; 
-    right: 0; 
-    margin-left: auto; 
-    margin-right: auto; 
-    width: 500px;
-    height: 500px;
-    background-color: gray;
-    border: 1px solid black;
-    display: none;
+.modal {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+    width: 100%;
+    height: 100%;
+    padding-top: 100px;
+    background-color: black;
+    background-color: rgba(0, 0, 0, 0.4);
+    overflow: auto;
 }
-#TODO-container{
+#TODO-container {
     background-color: brown;
+}
+.innerModal {
+    background-color: #fefefe;
+    margin: auto;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 300px;
+    height: 450px;
+}
+.modalInput {
+    width: 80%;
+    margin: 10px auto;
+    padding: 20px 20px;
+    display: block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.modalButtons {
+    display: block;
+    width: 20%;
+    margin: 12px auto;
+    text-align: center;
+}
+.modalButtons:hover {
+    color: red;
+}
+input[type='date'],
+input[type='time'],
+input[type='text'] {
+    text-align: center; /* dont work here */
 }
