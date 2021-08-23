@@ -5,9 +5,11 @@ class TodoApp {
     constructor() {
         this.todoItems = [];
         this.input = document.getElementById('input-field');
+
         addButton.addEventListener('click', () => {
             this.addTodoItem();
         });
+
         //Custom EventListeners
         document.addEventListener('deleteTodoItem', (event) => {
             const id = event.detail.index;
@@ -19,7 +21,8 @@ class TodoApp {
             const existItemIndex = this.todoItems.find((todoItem) => {
                 return todoItem.id === id;
             });
-            existItemIndex.modal.style.display = 'block';
+            console.log(existItemIndex);
+            this.modal.showModal(existItemIndex);
         });
 
         document.addEventListener('saveTodoItem', (item) => {
@@ -35,9 +38,11 @@ class TodoApp {
         document.addEventListener('closeModalWindow', (event) => {
             const id = event.detail.index;
             const existItemIndex = this.todoItems.find((todoItem) => {
+                console.log(todoItem.id === id);
                 return todoItem.id === id;
             });
-            existItemIndex.modal.style.display = 'none';
+
+            this.modal.hideModal(existItemIndex);
         });
     }
     //Check the validity of the main input
@@ -45,24 +50,16 @@ class TodoApp {
         const validity = input.checkValidity();
         if (!validity) {
             alert('Wrong Input');
-            throw new Error('Wrong input'); // Stop propagation of the code
+            throw new Error('Wrong input'); // Stops propagation of the code
         }
-    }
-    //check validity when user edit todoItem
-    validFromModalWindow(item) {
-        const letters = /^[A-Za-z]+$/;
-        if (!item.title.match(letters)) {
-            return true;
-        }
-        return false;
     }
 
     addTodoItem() {
         this.validtyFromMainInput(this.input);
         const todoItem = new TodoItem(this.input.value);
         this.modal = new ModalWindow();
-        const temp = Object.assign(todoItem, this.modal);
-        this.todoItems.push(temp);
+        const itemWithModal = Object.assign(todoItem, this.modal); //Creating one object from todoItem and modal.
+        this.todoItems.push(itemWithModal); // I had a problem with rendering separate modal window for every item and this works fine.
         this.render();
     }
 
@@ -70,7 +67,8 @@ class TodoApp {
         parentDiv.innerHTML = '';
         const list = document.createElement('div');
         this.todoItems.forEach((item) => {
-            if (this.validFromModalWindow(item)) {
+            if (item.validFromModalWindow()) {
+                //checking if the input title is correct
                 item.title = 'Wronginput'; //Setting title so alert box won't be annoying when there are more than one wrong input
                 alert('Wrong Input');
             }
@@ -116,6 +114,14 @@ class TodoItem {
 
         return element;
     }
+    //checks validity when user edit todoItem
+    validFromModalWindow() {
+        const letters = /^[A-Za-z]+$/;
+        if (this.title.match(letters)) {
+            return false;
+        }
+        return true;
+    }
     edit(data) {
         const {
             data: {
@@ -123,7 +129,7 @@ class TodoItem {
             },
         } = { data };
         this.title = item.titleInputValue;
-        this.start = `${item.startDateValue}  ${item.startTimeValue}`;
+        this.start = `${item.startDateValue}  ${item.startTimeValue}`; //Data from modal window are transfer to todoItem
         this.end = `${item.endDateValue}  ${item.endTimeValue}`;
     }
 
@@ -152,7 +158,6 @@ class ModalWindow {
     constructor() {
         this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`;
         this.crateModal();
-        this.hideModal();
     }
 
     crateModal() {
@@ -178,32 +183,36 @@ class ModalWindow {
 
         this.startDate = this.modal.getElementsByClassName(
             `startDate${this.id}`
-        );
+        )[0];
         this.titleInput = this.modal.getElementsByClassName(
             `titleInput${this.id}`
-        );
+        )[0];
         this.startTime = this.modal.getElementsByClassName(
             `startTime${this.id}`
-        );
-        this.endTime = this.modal.getElementsByClassName(`endTime${this.id}`);
-        this.endDate = this.modal.getElementsByClassName(`endDate${this.id}`);
+        )[0];
+        this.endTime = this.modal.getElementsByClassName(
+            `endTime${this.id}`
+        )[0];
+        this.endDate = this.modal.getElementsByClassName(
+            `endDate${this.id}`
+        )[0]; // [0] comes from the fact that "getElementsByClass" returns an array
     }
 
-    showModal() {
-        this.modal.style.display = 'block';
+    showModal(item) {
+        item.modal.style.display = 'block';
     }
 
-    hideModal() {
-        this.modal.style.display = 'none';
+    hideModal(item) {
+        item.modal.style.display = 'none';
     }
 
     getDataFromForm() {
         const data = {
-            startDateValue: this.startDate[0].value, //[0] comes from the fact that "getElementsByClass" returns an array
-            startTimeValue: this.startTime[0].value,
-            endDateValue: this.endDate[0].value,
-            endTimeValue: this.endTime[0].value,
-            titleInputValue: this.titleInput[0].value,
+            startDateValue: this.startDate.value,
+            startTimeValue: this.startTime.value,
+            endDateValue: this.endDate.value,
+            endTimeValue: this.endTime.value,
+            titleInputValue: this.titleInput.value,
         };
         return data;
     }
