@@ -5,11 +5,13 @@ class TodoApp {
         this.input = document.getElementById('input-field');
         this.parentDiv = document.getElementById('TODO-container');
         this.currentItemId;
+
         /////////////////// Buttons
         this.initButtons();
         this.initEventListeners();
         this.initCustomListeners();
         /////////////////
+
     }
     //Check the validity of the main input
     validtyFromMainInput(input) {
@@ -205,12 +207,13 @@ class TodoItem {
         const doneItem = element.getElementsByClassName(`title${this.id}`)[0];
         if (this.isDone) {
             doneItem.classList.add('done');
-        }
     }
+
     addHidenClass() {
         const item = document.getElementsByClassName(`element${this.id}`)[0];
         item.classList.add('hidden');
     }
+
     edit(data) {
         const {
             data: {
@@ -347,6 +350,7 @@ class ModalWindow {
     }
 }
 /////////////////////////////////////////////////////////////
+
 class App {
     constructor() {
         this.todoApp = new TodoApp();
