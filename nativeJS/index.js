@@ -5,13 +5,11 @@ class TodoApp {
         this.input = document.getElementById('input-field');
         this.parentDiv = document.getElementById('TODO-container');
         this.currentItemId;
-
         /////////////////// Buttons
         this.initButtons();
         this.initEventListeners();
         this.initCustomListeners();
         /////////////////
-
     }
     //Check the validity of the main input
     validtyFromMainInput(input) {
@@ -182,7 +180,7 @@ class TodoItem {
         this.title = title;
         this.timeStamp = Date.now();
         this.startTimeStamp = this.timeStamp;
-        this.startTimeStamp = this.timeStamp + 86400000;
+        this.endTimeStamp = this.timeStamp + 86400000;
         this.start = new Date(this.timeStamp).toLocaleString();
         this.end = new Date(this.timeStamp + 86400000).toLocaleString();
         this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`; //Generate random id for todoItem
@@ -243,13 +241,12 @@ class TodoItem {
         const doneItem = element.getElementsByClassName(`title${this.id}`)[0];
         if (this.isDone) {
             doneItem.classList.add('done');
+        }
     }
-
     addHidenClass() {
         const item = document.getElementsByClassName(`element${this.id}`)[0];
         item.classList.add('hidden');
     }
-
     edit(data) {
         console.log(data);
         const {
@@ -356,11 +353,6 @@ class ModalWindow {
 
     getDataFromForm() {
         const data = {
-            /*             startDateValue: this.startDate.value,
-            startTimeValue: this.startTime.value, */
-
-            endDateValue: this.endDate.value,
-            endTimeValue: this.endTime.value,
             titleInputValue: this.titleInput.value,
             startTimeStamp: Date.parse(
                 `${this.startDate.value} ${this.startTime.value}`
@@ -397,7 +389,6 @@ class ModalWindow {
     }
 }
 /////////////////////////////////////////////////////////////
-
 class App {
     constructor() {
         this.todoApp = new TodoApp();
