@@ -6,80 +6,10 @@ class TodoApp {
         this.parentDiv = document.getElementById('TODO-container');
         this.currentItemId;
         /////////////////// Buttons
-        const completedItemsButton = document.getElementById(
-            'completedItemsButton'
-        );
-        const showAllButton = document.getElementById('showAllButton');
-        const activeItemsButton = document.getElementById('activeItemsButton');
-        const deletDoneItemsButton = document.getElementById(
-            'deletDoneItemsButton'
-        );
+        this.initButtons();
+        this.initEventListeners();
+        this.initCustomListeners();
         /////////////////
-
-        activeItemsButton.addEventListener('click', () => {
-            this.hideActiveItems();
-        });
-        completedItemsButton.addEventListener('click', () => {
-            this.hideCompletedItems();
-        });
-        //Show All
-        showAllButton.addEventListener('click', () => {
-            this.render();
-        });
-        //Delete All
-        deletDoneItemsButton.addEventListener('click', () => {
-            this.todoItems = this.todoItems.filter((item) => {
-                return !item.isDone;
-            });
-            this.render();
-        });
-        const addButton = document.getElementById('addButton');
-        addButton.addEventListener('click', () => {
-            this.addTodoItem();
-        });
-
-        //Custom EventListeners
-        document.addEventListener('deleteTodoItem', (event) => {
-            const eventId = event.detail.id;
-            const existItemIndex = this.todoItems.findIndex(({ id }) => {
-                return id === eventId;
-            });
-            this.delete(existItemIndex);
-        });
-        //If checkbox is clicked, change the isDone property
-        document.addEventListener('checkDoneTodoItem', (event) => {
-            const eventId = event.detail.id;
-            const existItem = this.todoItems.find(({ id }) => {
-                return id === eventId;
-            });
-            if (existItem.isDone) {
-                existItem.isDone = false;
-                existItem.removeDoneClass();
-            } else {
-                existItem.isDone = true;
-                existItem.addDoneClass();
-            }
-        });
-        document.addEventListener('startEditTodoItem', (event) => {
-            const id = event.detail.id;
-            this.modal.showModal();
-            this.currentItemId = id;
-        });
-
-        document.addEventListener('saveTodoItem', (item) => {
-            const existItem = this.todoItems.find(({ id }) => {
-                return id === this.currentItemId;
-            });
-            existItem.edit(item);
-            this.modal.hideModal();
-            this.modal.clearModalInputs();
-            this.currentItemId = null;
-            this.render();
-        });
-        document.addEventListener('closeModalWindow', () => {
-            this.modal.hideModal();
-            this.currentItemId = null;
-        });
     }
     //Check the validity of the main input
     validtyFromMainInput(input) {
@@ -130,6 +60,84 @@ class TodoApp {
     delete(index) {
         this.todoItems.splice(index, 1);
         this.render();
+    }
+    initButtons() {
+        this.addButton = document.getElementById('addButton');
+        this.completedItemsButton = document.getElementById(
+            'completedItemsButton'
+        );
+        this.showAllButton = document.getElementById('showAllButton');
+        this.activeItemsButton = document.getElementById('activeItemsButton');
+        this.deletDoneItemsButton = document.getElementById(
+            'deletDoneItemsButton'
+        );
+    }
+    initEventListeners() {
+        activeItemsButton.addEventListener('click', () => {
+            this.hideActiveItems();
+        });
+        completedItemsButton.addEventListener('click', () => {
+            this.hideCompletedItems();
+        });
+        //Show All
+        showAllButton.addEventListener('click', () => {
+            this.render();
+        });
+        //Delete All
+        deletDoneItemsButton.addEventListener('click', () => {
+            this.todoItems = this.todoItems.filter((item) => {
+                return !item.isDone;
+            });
+            this.render();
+        });
+
+        addButton.addEventListener('click', () => {
+            this.addTodoItem();
+        });
+    }
+    initCustomListeners() {
+        //Custom EventListeners
+        document.addEventListener('deleteTodoItem', (event) => {
+            const eventId = event.detail.id;
+            const existItemIndex = this.todoItems.findIndex(({ id }) => {
+                return id === eventId;
+            });
+            this.delete(existItemIndex);
+        });
+        //If checkbox is clicked, change the isDone property
+        document.addEventListener('checkDoneTodoItem', (event) => {
+            const eventId = event.detail.id;
+            const existItem = this.todoItems.find(({ id }) => {
+                return id === eventId;
+            });
+            if (existItem.isDone) {
+                existItem.isDone = false;
+                existItem.removeDoneClass();
+            } else {
+                existItem.isDone = true;
+                existItem.addDoneClass();
+            }
+        });
+        document.addEventListener('startEditTodoItem', (event) => {
+            const id = event.detail.id;
+            this.modal.showModal();
+            this.currentItemId = id;
+        });
+
+        document.addEventListener('saveTodoItem', (item) => {
+            const existItem = this.todoItems.find(({ id }) => {
+                return id === this.currentItemId;
+            });
+            existItem.edit(item);
+            this.modal.hideModal();
+            this.modal.clearModalInputs();
+            this.currentItemId = null;
+            this.render();
+        });
+        document.addEventListener('closeModalWindow', () => {
+            this.modal.hideModal();
+            this.currentItemId = null;
+        });
     }
 }
 /////////////////////////////////////////////////////////////////////////
