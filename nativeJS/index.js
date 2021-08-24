@@ -71,6 +71,8 @@ class TodoApp {
         this.deletDoneItemsButton = document.getElementById(
             'deletDoneItemsButton'
         );
+        this.sortDateButton = document.getElementById('sortDateButton');
+        this.sortTitleButton = document.getElementById('sortTitleButton');
     }
     initEventListeners() {
         activeItemsButton.addEventListener('click', () => {
@@ -93,6 +95,12 @@ class TodoApp {
 
         addButton.addEventListener('click', () => {
             this.addTodoItem();
+        });
+        this.sortDateButton.addEventListener('click', () => {
+            this.sortByDate();
+        });
+        this.sortTitleButton.addEventListener('click', () => {
+            this.sortByTitle();
         });
     }
     initCustomListeners() {
@@ -139,12 +147,40 @@ class TodoApp {
             this.currentItemId = null;
         });
     }
+    sortByTitle() {
+        this.todoItems.sort((item, item2) => {
+            if (item.title < item2.title) {
+                return -1;
+            }
+            if (item.title > item2.title) {
+                return 1;
+            }
+            return 0;
+        });
+
+        this.render();
+    }
+    sortByDate() {
+        this.todoItems.sort((item, item2) => {
+            if (item.startTimeStamp < item2.startTimeStamp) {
+                return -1;
+            }
+            if (item.startTimeStamp > item2.startTimeStamp) {
+                return 1;
+            }
+            return 0;
+        });
+
+        this.render();
+    }
 }
 /////////////////////////////////////////////////////////////////////////
 class TodoItem {
     constructor(title) {
         this.title = title;
         this.timeStamp = Date.now();
+        this.startTimeStamp = this.timeStamp;
+        this.startTimeStamp = this.timeStamp + 86400000;
         this.start = new Date(this.timeStamp).toLocaleString();
         this.end = new Date(this.timeStamp + 86400000).toLocaleString();
         this.id = `${crypto.getRandomValues(new Uint8Array(8)).join('')}`; //Generate random id for todoItem
@@ -212,14 +248,16 @@ class TodoItem {
         item.classList.add('hidden');
     }
     edit(data) {
+        console.log(data);
         const {
             data: {
                 detail: { item }, //object Destructuring
             },
         } = { data };
         this.title = item.titleInputValue;
-        this.start = `${item.startDateValue}  ${item.startTimeValue}`; //Data from modal window are transfer to todoItem
-        this.end = `${item.endDateValue}  ${item.endTimeValue}`;
+        this.start = `${new Date(item.startTimeStamp).toLocaleString()}`; //Data from modal window are transfer to todoItem
+        this.end = `${new Date(item.endTimeStamp).toLocaleString()}`;
+        this.startTimeStamp = item.startTimeStamp;
     }
 
     editItem() {
@@ -265,7 +303,7 @@ class ModalWindow {
         this.modal.innerHTML = `<div class="innerModal">
         <input class='titleInput${this.id} modalInput' type='text'>
         <input class='startDate${this.id} modalInput' type='date'>      
-        <input class='startTime${this.id} modalInput' type='time' step='1'>
+        <input class='startTime${this.id} modalInput' type='time' >
         <input class='endDate${this.id} modalInput' type='date'>  
         <input class='endTime${this.id} modalInput' type='time' step='1'>
         <span class='save-button${this.id} modalButtons' id="save-button">Save</span>
@@ -315,12 +353,21 @@ class ModalWindow {
 
     getDataFromForm() {
         const data = {
-            startDateValue: this.startDate.value,
-            startTimeValue: this.startTime.value,
+            /*             startDateValue: this.startDate.value,
+            startTimeValue: this.startTime.value, */
+
             endDateValue: this.endDate.value,
             endTimeValue: this.endTime.value,
             titleInputValue: this.titleInput.value,
+            startTimeStamp: Date.parse(
+                `${this.startDate.value} ${this.startTime.value}`
+            ),
+            endTimeStamp: Date.parse(
+                `${this.endDate.value} ${this.endTime.value}`
+            ),
         };
+        console.log(new Date(data.startTimeStamp).toLocaleString());
+
         return data;
     }
     save() {
