@@ -40,6 +40,22 @@ class TodoApp {
             }
         });
     }
+    filerItemsByTitle() {
+        const filterValue = this.filterString.value;
+        this.todoItems.forEach((item) => {
+            if (!item.title.includes(filterValue)) {
+                item.addHidenClass();
+            }
+        });
+    }
+    filerItemsByDate() {
+        const filterDate = Date.parse(this.filterDate.value);
+        this.todoItems.forEach((item) => {
+            if (item.startTimeStamp < filterDate) {
+                item.addHidenClass();
+            }
+        });
+    }
 
     render() {
         this.parentDiv.innerHTML = '';
@@ -54,7 +70,6 @@ class TodoApp {
         });
         this.parentDiv.appendChild(list);
         this.parentDiv.appendChild(this.modal.modal);
-        console.log(this.todoItems);
     }
 
     delete(index) {
@@ -73,8 +88,22 @@ class TodoApp {
         );
         this.sortDateButton = document.getElementById('sortDateButton');
         this.sortTitleButton = document.getElementById('sortTitleButton');
+        this.filterString = document.getElementById('filterInput');
+        this.filterDate = document.getElementById('filterDate');
     }
     initEventListeners() {
+        this.filterString.addEventListener('change', () => {
+            this.filerItemsByTitle();
+            if (!this.filterString.value) {
+                this.render();
+            }
+        });
+        this.filterDate.addEventListener('change', () => {
+            this.filerItemsByDate();
+            if (!this.filterDate.value) {
+                this.render();
+            }
+        });
         activeItemsButton.addEventListener('click', () => {
             this.hideActiveItems();
         });
@@ -248,7 +277,6 @@ class TodoItem {
         item.classList.add('hidden');
     }
     edit(data) {
-        console.log(data);
         const {
             data: {
                 detail: { item }, //object Destructuring
@@ -361,7 +389,6 @@ class ModalWindow {
                 `${this.endDate.value} ${this.endTime.value}`
             ),
         };
-        console.log(new Date(data.startTimeStamp).toLocaleString());
 
         return data;
     }

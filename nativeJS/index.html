@@ -13,18 +13,19 @@
         <button id="addButton">ADD</button>
 
         <button id="completedItemsButton">Hide Completed Items</button>
-        <button id="activeItemsButton">Hide Active Items</button>
-        <button id="showAllButton">Show All</button>
-        <button id="deletDoneItemsButton">Clear Completed</button>
-        <button id="sortDateButton">Sort by Date</button>
-        <button id="sortTitleButton">Sort by Title</button>
-
         <input
             id="input-field"
             required
             pattern="[a-zA-Z]+"
             placeholder="Add task..."
         />
+        <button id="activeItemsButton">Hide Active Items</button>
+        <button id="showAllButton">Show All</button>
+        <button id="deletDoneItemsButton">Clear Completed</button>
+        <button id="sortDateButton">Sort by Date</button>
+        <button id="sortTitleButton">Sort by Title</button>
+        <input id="filterInput" placeholder="Filter by title..." type="text" />
+        <input id="filterDate" type="date" />
         <div id="TODO-container"></div>
         <script src="index.js"></script>
     </body>
