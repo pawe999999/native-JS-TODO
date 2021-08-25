@@ -1,20 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=S, initial-scale=1.0">
-    <title>TODO app</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <h1 id="name">TODO app</h1>
-    <h3>Add activity:</h3>
-    <button id="addButton">ADD</button>
-    <input id="input-field"  required pattern="[a-zA-Z]+" placeholder="Add task...">
-    <div id="TODO-container"></div>
-    <script src="index.js" ></script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=S, initial-scale=1.0" />
+        <title>TODO app</title>
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <h1 id="name">TODO app</h1>
+        <h3>Add activity:</h3>
+        <button id="addButton">ADD</button>
 
-
+        <button id="completedItemsButton">Hide Completed Items</button>
+        <input
+            id="input-field"
+            required
+            pattern="[a-zA-Z]+"
+            placeholder="Add task..."
+        />
+        <button id="activeItemsButton">Hide Active Items</button>
+        <button id="showAllButton">Show All</button>
+        <button id="deletDoneItemsButton">Clear Completed</button>
+        <button id="sortDateButton">Sort by Date</button>
+        <button id="sortTitleButton">Sort by Title</button>
+        <input id="filterInput" placeholder="Filter by title..." type="text" />
+        <input id="filterDate" type="date" />
+        <div id="TODO-container"></div>
+        <script src="index.js"></script>
+    </body>
 </html>
