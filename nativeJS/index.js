@@ -70,7 +70,6 @@ class TodoApp {
         });
         this.parentDiv.appendChild(list);
         this.parentDiv.appendChild(this.modal.modal);
-        console.log(this.todoItems);
     }
 
     delete(index) {
@@ -278,7 +277,6 @@ class TodoItem {
         item.classList.add('hidden');
     }
     edit(data) {
-        console.log(data);
         const {
             data: {
                 detail: { item }, //object Destructuring
@@ -391,7 +389,6 @@ class ModalWindow {
                 `${this.endDate.value} ${this.endTime.value}`
             ),
         };
-        console.log(new Date(data.startTimeStamp).toLocaleString());
 
         return data;
     }
